@@ -1,4 +1,5 @@
-#include <GL/glew.h>
+// #include <GL/glew.h>
+#include "scratch/glew.cpp"
 #include "scratch/glfw.cpp"
 #include "innitShadder.cpp"
 
@@ -18,14 +19,17 @@ int main()
 		1, 2, 3    // second triangle
 	}; 
 
+	// Initializes GLFW
 	scratch::glfw_initializer();
 
+	// Creates Window
 	auto window = scratch::window(WIDTH,HEIGHT,"test");
 	glfwMakeContextCurrent(window);
 
-	glewExperimental = GL_TRUE;
-	glewInit();
+	// Initializes GLEW
+	scratch::glew_initializer();
 
+	// Binds the shaders and returns Program to use 
 	auto program = test::InitShader( "vshader.glsl", "fshader.glsl" );
     glUseProgram( program );
 
