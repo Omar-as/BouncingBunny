@@ -2,10 +2,10 @@
 #include <iostream>
 #include <sstream>
 
-// Name Needs Changing. ASK.
+
 namespace scratch 
 {
-
+	// Initializing the glfw
 	void glfw_initializer(){
 
 		glfwInit();
@@ -16,7 +16,7 @@ namespace scratch
 	
 	}
 
-	// how to pass a string in argument in a function
+	// Creates the window and returns it
 	GLFWwindow* window(int width, int height, const char* title){
 
 		auto window = glfwCreateWindow(width, height, title, NULL, NULL);
