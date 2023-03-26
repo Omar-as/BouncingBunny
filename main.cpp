@@ -1,8 +1,11 @@
 // #include <GL/glew.h>
+#include <cmath>
 #include "scratch/glew.cpp"
 #include "scratch/glfw.cpp"
 #include "innitShadder.cpp"
 #include "scratch/load_model.cpp"
+
+void processInput(GLFWwindow *window);
 
 #define WIDTH 800
 #define HEIGHT 600
@@ -52,16 +55,41 @@ int main()
 	glViewport(0, 0, WIDTH, HEIGHT);
 	while(!glfwWindowShouldClose(window))
 	{
+		// input
+		processInput(window);
+
+		// render
+    	// clear the colorbuffer
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// be sure to activate the shader
+		glUseProgram(program);
+
+		// update the uniform color
+		double  timeValue = glfwGetTime();
+        float greenValue = static_cast<float>(sin(timeValue) / 2.0 + 0.5);
+        int vertexColorLocation = glGetUniformLocation(program, "ourColor");
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+		// now render the triangle
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, model.indices_number, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
+		// swap buffers and poll IO events
 		glfwSwapBuffers(window);
 		glfwPollEvents();    
 	}
 	glfwTerminate();
 	return EXIT_SUCCESS;
-}	
+}
+
+// --------------------------------------------------------------------------------------------------------- //
+// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+void processInput(GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+}
+
