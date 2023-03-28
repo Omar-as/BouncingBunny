@@ -1,3 +1,4 @@
 # Nix Direnv Cache
 .direnv/
 .ccls-cache/
+**/*.out
