@@ -1,4 +1,4 @@
-namespace test{
+namespace innitshader{
     using namespace std;
 
     static char*
