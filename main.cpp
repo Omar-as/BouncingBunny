@@ -4,11 +4,15 @@
 #include "scratch/glfw.cpp"
 #include "innitShadder.cpp"
 #include "scratch/load_model.cpp"
+#include "scratch/color.cpp"
 
-void processInput(GLFWwindow *window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 #define WIDTH 800
 #define HEIGHT 600
+
+int colorIndex = 0;
+int vertexColorLocation = 0;
 
 int main()
 {
@@ -19,16 +23,21 @@ int main()
 	auto window = scratch::window(WIDTH,HEIGHT,"test");
 	glfwMakeContextCurrent(window);
 
+	glfwSetKeyCallback(window, key_callback);
+
 	// Initializes GLEW
 	scratch::glew_initializer();
 
 	// Creates a model with the vertices and indices vectors
-	auto model = scratch::model_loader("dotoff/bunny.off");
-	// scratch::model_loader("dotoff/bunny.off");
+	auto model = scratch::model_loader("dotoff/cube.tlst");
 
 	// Binds the shaders and returns Program to use 
-	auto program = test::InitShader( "vshader.glsl", "fshader.glsl" );
+	auto program = innitshader::InitShader( "vshader.glsl", "fshader.glsl" );
     glUseProgram( program );
+
+	// Set initial color
+	int vertexColorLocation = glGetUniformLocation(program, "ourColor");
+	glUniform4f(vertexColorLocation, 0.9568627451f, 0.2627450980f, 0.2117647059f, 1.0f); // Red
 
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
@@ -55,26 +64,18 @@ int main()
 	glViewport(0, 0, WIDTH, HEIGHT);
 	while(!glfwWindowShouldClose(window))
 	{
-		// input
-		processInput(window);
-
 		// render
     	// clear the colorbuffer
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// be sure to activate the shader
 		glUseProgram(program);
 
-		// update the uniform color
-		double  timeValue = glfwGetTime();
-        float greenValue = static_cast<float>(sin(timeValue) / 2.0 + 0.5);
-        int vertexColorLocation = glGetUniformLocation(program, "ourColor");
-        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-
-		// now render the triangle
+		// now render the model
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, model.indices_number, GL_UNSIGNED_INT, 0);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glBindVertexArray(0);
 
 		// swap buffers and poll IO events
@@ -87,9 +88,17 @@ int main()
 
 // --------------------------------------------------------------------------------------------------------- //
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-void processInput(GLFWwindow *window)
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+	// Terminates the program when Q is pressed
+    if (key == GLFW_KEY_Q && action == GLFW_PRESS){
+        exit(EXIT_SUCCESS);
+	}
+	// Changes the color when C is pressed
+	else if (key == GLFW_KEY_C && action == GLFW_PRESS){
+        float* row = scratch::colors(colorIndex);
+		colorIndex = int(row[3]);
+		scratch::update_colors(vertexColorLocation, row[0], row[1], row[2]);
+	}
 }
 
