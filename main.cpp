@@ -38,13 +38,14 @@ int main()
 	auto window = scratch::window(WIDTH,HEIGHT,"test");
 	glfwMakeContextCurrent(window);
 
+	// Call-Backs
 	glfwSetKeyCallback(window, key_callback);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 	// Initializes GLEW
 	scratch::glew_initializer();
 
-	// Creates a model with the vertices and indices vectors
+	// Adds all the models
 	models.push_back(scratch::model_loader("dotoff/bunny.tlst"));
 	models.push_back(scratch::model_loader("dotoff/cube.tlst"));
 	models.push_back(scratch::model_loader("dotoff/sphere.tlst"));
