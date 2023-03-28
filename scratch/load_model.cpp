@@ -20,6 +20,9 @@ namespace scratch{
         GLint vertices_number;
         GLint indices_number;
 
+        unsigned int VAO;
+        unsigned int VBO;
+        unsigned int EBO;
     };
 
     Model model_loader(const char* filename){
