@@ -1,18 +1,33 @@
 // #include <GL/glew.h>
 #include <cmath>
+#include <vector>
+#include <iostream>
 #include "scratch/glew.cpp"
 #include "scratch/glfw.cpp"
 #include "innitShadder.cpp"
 #include "scratch/load_model.cpp"
 #include "scratch/color.cpp"
+#include "scratch/trans.cpp"
+
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 #define WIDTH 800
-#define HEIGHT 600
+#define HEIGHT 800
 
 int colorIndex = 0;
-int vertexColorLocation = 0;
+int vertexColorLocation = 1;
+
+int modelIndex = 0;
+std::vector <scratch::Model> models;
+
+int drawIndex = 0;
+std::vector <GLenum> drawInstance = {GL_LINE, GL_FILL, GL_POINT};
 
 int main()
 {
@@ -24,12 +39,15 @@ int main()
 	glfwMakeContextCurrent(window);
 
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 	// Initializes GLEW
 	scratch::glew_initializer();
 
 	// Creates a model with the vertices and indices vectors
-	auto model = scratch::model_loader("dotoff/cube.tlst");
+	models.push_back(scratch::model_loader("dotoff/bunny.tlst"));
+	models.push_back(scratch::model_loader("dotoff/cube.tlst"));
+	models.push_back(scratch::model_loader("dotoff/sphere.tlst"));
 
 	// Binds the shaders and returns Program to use 
 	auto program = innitshader::InitShader( "vshader.glsl", "fshader.glsl" );
@@ -39,43 +57,48 @@ int main()
 	int vertexColorLocation = glGetUniformLocation(program, "ourColor");
 	glUniform4f(vertexColorLocation, 0.9568627451f, 0.2627450980f, 0.2117647059f, 1.0f); // Red
 
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
+	// Binds all the buffers for all the models
+	for (int i = 0; i < models.size(); i++){
 
-	unsigned int VBO;
-	glGenBuffers(1, &VBO); 
+		glGenVertexArrays(1, &models[i].VAO);
+		glGenBuffers	 (1, &models[i].VBO);
+		glGenBuffers	 (1, &models[i].EBO);
 
-	unsigned int EBO;
-	glGenBuffers(1, &EBO);
+		glBindVertexArray(models[i].VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, models[i].VBO);
+		glBufferData(GL_ARRAY_BUFFER, models[i].vertices.size() * sizeof(float), &models[i].vertices.front(), GL_STATIC_DRAW);
 
-	// ..:: Initialization code :: ..
-	// 1. bind Vertex Array Object
-	glBindVertexArray(VAO);
-	// 2. copy our vertices array in a vertex buffer for OpenGL to use
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(float), &model.vertices.front(), GL_STATIC_DRAW);
-	// 3. copy our index array in a element buffer for OpenGL to use
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.indices.size() * sizeof(int), &model.indices.front(), GL_STATIC_DRAW);
-	// 4. then set the vertex attributes pointers
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0); 
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, models[i].EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, models[i].indices.size() * sizeof(int), &models[i].indices.front(), GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0); 
+	}
 	 
 	glViewport(0, 0, WIDTH, HEIGHT);
 	while(!glfwWindowShouldClose(window))
 	{
+		// create the model
+		modelIndex = modelIndex % models.size();
+		auto model = models[modelIndex];
+
 		// render
     	// clear the colorbuffer
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// create transformations
+		unsigned int transformLoc = glGetUniformLocation(program, "transform");
+		scratch::transform(transformLoc, modelIndex);
+
 		// be sure to activate the shader
 		glUseProgram(program);
 
 		// now render the model
-		glBindVertexArray(VAO);
+		glBindVertexArray(models[modelIndex].VAO);
 		glDrawElements(GL_TRIANGLES, model.indices_number, GL_UNSIGNED_INT, 0);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		drawIndex = drawIndex % drawInstance.size();
+		glPolygonMode(GL_FRONT_AND_BACK, drawInstance[drawIndex]);
 		glBindVertexArray(0);
 
 		// swap buffers and poll IO events
@@ -87,7 +110,6 @@ int main()
 }
 
 // --------------------------------------------------------------------------------------------------------- //
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	// Terminates the program when Q is pressed
@@ -100,5 +122,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		colorIndex = int(row[3]);
 		scratch::update_colors(vertexColorLocation, row[0], row[1], row[2]);
 	}
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+
+	// changes between models
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
+		modelIndex++;
+	}
+	// changes between interpretation of polygons
+	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS){
+		drawIndex++;
+	}
+
 }
 
