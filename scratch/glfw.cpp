@@ -6,7 +6,8 @@
 namespace scratch 
 {
 	// Initializing the glfw
-	void glfw_initializer(){
+	void glfw_initializer()
+	{
 
 		glfwInit();
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -17,7 +18,8 @@ namespace scratch
 	}
 
 	// Creates the window and returns it
-	GLFWwindow* window(int width, int height, const char* title){
+	GLFWwindow* window(int width, int height, const char* title)
+	{
 
 		auto window = glfwCreateWindow(width, height, title, NULL, NULL);
 		if (window == NULL)

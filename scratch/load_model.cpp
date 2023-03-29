@@ -3,11 +3,12 @@
 #include <fstream>
 #include <algorithm>
 
-namespace scratch{
+namespace scratch
+{
     using namespace std;
 
-    struct Model {
-
+    struct Model 
+    {
         // creating vector for vertices and indices
         vector<GLfloat> vertices;
         vector<GLint> indices;
@@ -20,12 +21,14 @@ namespace scratch{
         GLint vertices_number;
         GLint indices_number;
 
+        // Vertex array object/Vertex buffer object/Edge buffer object. for each model
         unsigned int VAO;
         unsigned int VBO;
         unsigned int EBO;
     };
 
-    Model model_loader(const char* filename){
+    Model model_loader(const char* filename)
+    {
         
         // Open the file to be read from
         ifstream infile;
@@ -36,19 +39,22 @@ namespace scratch{
         infile >> model.no_lines_vertices;
         infile >> model.no_lines_indices;
 
+        // Calculates the vertices and indices numbers
         model.vertices_number = 3 * model.no_lines_vertices;
         model.indices_number = 3 * model.no_lines_indices;
 
         // Adds the vertex to the vertices vector
         GLfloat vertex;
-        for (GLint i = 0; i < model.vertices_number; i++){
+        for (GLint i = 0; i < model.vertices_number; i++)
+        {
             infile >> vertex;
             model.vertices.push_back(vertex);
         }
 
         // Adds the index to the indices vector
         GLint index;
-        for (GLint i = 0; i < model.indices_number; i++){
+        for (GLint i = 0; i < model.indices_number; i++)
+        {
             infile >> index;
             model.indices.push_back(index);
         }
@@ -56,9 +62,7 @@ namespace scratch{
         // Finding the maximum
         GLfloat max = *max_element(model.vertices.begin(), model.vertices.end());
 
-        for (auto i = 0; i < model.vertices.size(); i++){
-            model.vertices[i] /= max;
-        }
+        for (auto i = 0; i < model.vertices.size(); i++) model.vertices[i] /= max;
 
         return model;
 

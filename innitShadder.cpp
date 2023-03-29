@@ -1,4 +1,5 @@
-namespace innitshader{
+namespace innitshader
+{
     using namespace std;
 
     static char*
@@ -6,7 +7,8 @@ namespace innitshader{
     {
         auto file = fopen(filename, "r");
 
-		if (file == NULL) {
+		if (file == NULL) 
+        {
 			cerr << "Failed to open " << filename << "." << endl;
 			exit(EXIT_FAILURE);
 		}
@@ -20,9 +22,9 @@ namespace innitshader{
 		rewind(file);
 		auto read_size = (long int) fread(code, sizeof(GLchar), file_size, file);
 
-		if (read_size != file_size) {
+		if (read_size != file_size) 
+        {
 			cerr << "Failed to read " << filename << "." << endl;
-
 			delete[] code;
 			exit(EXIT_FAILURE);
 		}
@@ -43,21 +45,22 @@ namespace innitshader{
     GLuint
     InitShader(const char* vShaderFile, const char* fShaderFile)
     {
-        struct Shader {
-        const char*  filename;
-        GLenum       type;
-        GLchar*      source;
-        }  shaders[2] = {
-        { vShaderFile, GL_VERTEX_SHADER, NULL },
-        { fShaderFile, GL_FRAGMENT_SHADER, NULL }
-        };
+        struct Shader 
+        {
+            const char*  filename;
+            GLenum       type;
+            GLchar*      source;
+        }shaders[2] = { { vShaderFile, GL_VERTEX_SHADER  , NULL },
+                        { fShaderFile, GL_FRAGMENT_SHADER, NULL } };
 
         GLuint program = glCreateProgram();
         
-        for ( int i = 0; i < 2; ++i ) {
+        for ( int i = 0; i < 2; ++i ) 
+        {
             Shader& s = shaders[i];
             s.source = readShaderSource( s.filename );
-            if ( shaders[i].source == NULL ) {
+            if ( shaders[i].source == NULL ) 
+            {
                 std::cerr << "Failed to read " << s.filename << std::endl;
                 exit( EXIT_FAILURE );
             }
@@ -68,7 +71,8 @@ namespace innitshader{
 
             GLint  compiled;
             glGetShaderiv( shader, GL_COMPILE_STATUS, &compiled );
-            if ( !compiled ) {
+            if ( !compiled ) 
+            {
                 std::cerr << s.filename << " failed to compile:" << std::endl;
                 GLint  logSize;
                 glGetShaderiv( shader, GL_INFO_LOG_LENGTH, &logSize );
@@ -90,7 +94,8 @@ namespace innitshader{
 
         GLint  linked;
         glGetProgramiv( program, GL_LINK_STATUS, &linked );
-        if ( !linked ) {
+        if ( !linked ) 
+        {
             std::cerr << "Shader program failed to link" << std::endl;
             GLint  logSize;
             glGetProgramiv( program, GL_INFO_LOG_LENGTH, &logSize);

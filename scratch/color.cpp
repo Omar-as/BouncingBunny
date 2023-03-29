@@ -1,12 +1,16 @@
 #include <iostream>
 
-namespace scratch{
+namespace scratch
+{
     using namespace std;
 
-    float* colors(int index){
+    // Returns the row of the colors array
+    float* colors(int index)
+    {
 
         // color array
-        static float color_collection[][3] = {
+        static float color_collection[][3] = 
+        {
             {1.0000000000f, 0.7568627451f, 0.0274509804f}, // Yellow
             {0.2980392157f, 0.6862745098f, 0.3137254902f}, // Green
             {0.9568627451f, 0.2627450980f, 0.2117647059f}, // Red
@@ -26,7 +30,8 @@ namespace scratch{
         return row;
     }
 
-    void update_colors(auto vertexColorLocation, float redVal, float greenVal, float blueVal){
+    // Updates the color shown on screen
+    void update_colors(auto vertexColorLocation, float redVal, float greenVal, float blueVal) {
         glUniform4f(vertexColorLocation, redVal, greenVal, blueVal, 1.0f);
     }
 

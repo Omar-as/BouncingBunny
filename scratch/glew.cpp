@@ -5,9 +5,11 @@
 #endif
 #include <GLFW/glfw3.h>
 
-namespace scratch {
+namespace scratch 
+{
 
-    void glew_initializer(){
+    void glew_initializer()
+    {
         glewExperimental = GL_TRUE;
         glewInit();
     }

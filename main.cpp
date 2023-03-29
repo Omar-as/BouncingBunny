@@ -1,7 +1,7 @@
-// #include <GL/glew.h>
 #include <cmath>
 #include <vector>
 #include <iostream>
+
 #include "scratch/glew.cpp"
 #include "scratch/glfw.cpp"
 #include "innitShadder.cpp"
@@ -9,16 +9,32 @@
 #include "scratch/color.cpp"
 #include "scratch/trans.cpp"
 
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+// ***********************************************************************************************
+// Functions
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
-#define WIDTH 800
-#define HEIGHT 800
+// ***********************************************************************************************
+// Macros
+
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+#define WINDOW_TITLE "Bouncing Objects"
+
+#define vshader "vshader.glsl"
+#define fshader "fshader.glsl"
+
+#define bunny 	"dotoff/bunny.tlst"
+#define cube  	"dotoff/cube.tlst"
+#define sphere	"dotoff/sphere.tlst"
+
+// ***********************************************************************************************
+// Global Variables 
 
 int colorIndex = 0;
 int vertexColorLocation = 1;
@@ -29,13 +45,16 @@ std::vector <scratch::Model> models;
 int drawIndex = 0;
 std::vector <GLenum> drawInstance = {GL_LINE, GL_FILL, GL_POINT};
 
+// ***********************************************************************************************
+
+
 int main()
 {
 	// Initializes GLFW
 	scratch::glfw_initializer();
 
 	// Creates Window
-	auto window = scratch::window(WIDTH,HEIGHT,"test");
+	auto window = scratch::window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
 	glfwMakeContextCurrent(window);
 
 	// Call-Backs
@@ -46,12 +65,12 @@ int main()
 	scratch::glew_initializer();
 
 	// Adds all the models
-	models.push_back(scratch::model_loader("dotoff/bunny.tlst"));
-	models.push_back(scratch::model_loader("dotoff/cube.tlst"));
-	models.push_back(scratch::model_loader("dotoff/sphere.tlst"));
+	models.push_back(scratch::model_loader(bunny));
+	models.push_back(scratch::model_loader(cube));
+	models.push_back(scratch::model_loader(sphere));
 
 	// Binds the shaders and returns Program to use 
-	auto program = innitshader::InitShader( "vshader.glsl", "fshader.glsl" );
+	auto program = innitshader::InitShader( vshader, fshader );
     glUseProgram( program );
 
 	// Set initial color
@@ -59,8 +78,8 @@ int main()
 	glUniform4f(vertexColorLocation, 0.9568627451f, 0.2627450980f, 0.2117647059f, 1.0f); // Red
 
 	// Binds all the buffers for all the models
-	for (int i = 0; i < models.size(); i++){
-
+	for (int i = 0; i < models.size(); i++)
+	{
 		glGenVertexArrays(1, &models[i].VAO);
 		glGenBuffers	 (1, &models[i].VBO);
 		glGenBuffers	 (1, &models[i].EBO);
@@ -76,7 +95,7 @@ int main()
 		glEnableVertexAttribArray(0); 
 	}
 	 
-	glViewport(0, 0, WIDTH, HEIGHT);
+	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 	while(!glfwWindowShouldClose(window))
 	{
 		// create the model
@@ -111,13 +130,14 @@ int main()
 }
 
 // --------------------------------------------------------------------------------------------------------- //
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	// Terminates the program when Q is pressed
+	// Terminates the program with Q
     if (key == GLFW_KEY_Q && action == GLFW_PRESS){
         exit(EXIT_SUCCESS);
 	}
-	// Changes the color when C is pressed
+	// Changes the color with C
 	else if (key == GLFW_KEY_C && action == GLFW_PRESS){
         float* row = scratch::colors(colorIndex);
 		colorIndex = int(row[3]);
@@ -125,7 +145,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
 
 	// changes between models
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS){
