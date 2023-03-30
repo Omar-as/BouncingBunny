@@ -83,8 +83,6 @@ int main()
 	auto program = innitshader::InitShader( vshader, fshader );
     glUseProgram( program );
 
-	// std::cout << "maintest" << std::endl;
-
 	// Adds all the models
 	models.push_back(scratch::model_loader(bunny));
 	models.push_back(scratch::model_loader(cube));
