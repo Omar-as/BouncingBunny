@@ -16,22 +16,29 @@
 // ***********************************************************************************************
 // Functions
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+void key_callback			(GLFWwindow* window, int key, int scancode, int action, int mods);
+void mouse_button_callback	(GLFWwindow* window, int button, int action, int mods);
+
+void update(GLuint program, scratch::Model model);
+void reset(GLuint program);
+void help();
 
 // ***********************************************************************************************
 // Macros
 
-#define WINDOW_WIDTH 800
+#define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 600
 #define WINDOW_TITLE "Bouncing Objects"
+
+#define colorinput 	 "incolor"
+#define transformVal "transform"
 
 #define vshader "vshader.glsl"
 #define fshader "fshader.glsl"
 
-#define bunny 	"dotoff/bunny.tlst"
-#define cube  	"dotoff/cube.tlst"
-#define sphere	"dotoff/sphere.tlst"
+#define bunny 	"dotoff/new_bunny.tlst"
+#define cube  	"dotoff/new_cube.tlst"
+#define sphere	"dotoff/new_sphere.tlst"
 
 // ***********************************************************************************************
 // Global Variables 
@@ -44,6 +51,14 @@ std::vector <scratch::Model> models;
 
 int drawIndex = 0;
 std::vector <GLenum> drawInstance = {GL_LINE, GL_FILL, GL_POINT};
+
+float xPos = 0.0;
+float yPos = 0.0;
+float xVelo = 0.003;
+float yVelo = 0.0;
+float yAcc = -0.001;
+
+int resetVal = 0;
 
 // ***********************************************************************************************
 
@@ -63,22 +78,24 @@ int main()
 
 	// Initializes GLEW
 	scratch::glew_initializer();
+	
+	// Binds the shaders and returns Program to use 
+	auto program = innitshader::InitShader( vshader, fshader );
+    glUseProgram( program );
+
+	// std::cout << "maintest" << std::endl;
 
 	// Adds all the models
 	models.push_back(scratch::model_loader(bunny));
 	models.push_back(scratch::model_loader(cube));
 	models.push_back(scratch::model_loader(sphere));
 
-	// Binds the shaders and returns Program to use 
-	auto program = innitshader::InitShader( vshader, fshader );
-    glUseProgram( program );
-
 	// Set initial color
-	int vertexColorLocation = glGetUniformLocation(program, "ourColor");
+	int vertexColorLocation = glGetUniformLocation(program, colorinput);
 	glUniform4f(vertexColorLocation, 0.9568627451f, 0.2627450980f, 0.2117647059f, 1.0f); // Red
 
 	// Binds all the buffers for all the models
-	for (int i = 0; i < models.size(); i++)
+	for (size_t i = 0; i < models.size(); i++)
 	{
 		glGenVertexArrays(1, &models[i].VAO);
 		glGenBuffers	 (1, &models[i].VBO);
@@ -107,9 +124,13 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// create transformations
-		unsigned int transformLoc = glGetUniformLocation(program, "transform");
-		scratch::transform(transformLoc, modelIndex);
+		// Updates the model or resets it
+		if(resetVal == 0){
+			update(program, model);
+		}else{
+			reset(program);
+			resetVal = 0;
+		}
 
 		// be sure to activate the shader
 		glUseProgram(program);
@@ -125,11 +146,13 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();    
 	}
+
+	// Terminates the program
 	glfwTerminate();
 	return EXIT_SUCCESS;
 }
 
-// --------------------------------------------------------------------------------------------------------- //
+// ***********************************************************************************************
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -142,6 +165,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         float* row = scratch::colors(colorIndex);
 		colorIndex = int(row[3]);
 		scratch::update_colors(vertexColorLocation, row[0], row[1], row[2]);
+	}
+	// Resets the model to initial postion with I
+	else if (key == GLFW_KEY_I && action == GLFW_PRESS){
+        resetVal++;
+	}
+	// Prints the HELP screen with H
+	else if (key == GLFW_KEY_H && action == GLFW_PRESS){
+        help();
 	}
 }
 
@@ -159,3 +190,53 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 }
 
+void update(GLuint program, scratch::Model model){
+
+	// Updates the model position and yVelo
+	xPos += xVelo;
+	yVelo += yAcc;
+	yPos += yVelo;
+
+	// Creates the transform with the new positions
+	unsigned int transformLoc = glGetUniformLocation(program, transformVal);
+	glm::mat4 transform = glm::mat4(1.0f);
+	transform = glm::translate(transform, glm::vec3(xPos, yPos,0.0f));
+
+	// Calculates the new Y minimum of the model
+	auto yMin = transform * glm::vec4(1.0f, model.minYval, 1.0f, 1.0f);
+
+	// Checks if Y is below the ground or not and updates it correspondingly
+	if (yMin.y < -1) {
+		yVelo *= -1 * 0.9;
+		yPos = -1 - model.minYval;
+	}
+	
+	// Applies the transform
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+}
+
+void reset(GLuint program){
+	
+	// Resets the values of the model
+	xPos = 0.0;
+	yPos = 0.0;
+	yVelo = 0.0;
+
+	// Resets position to original position
+	unsigned int transformLoc = glGetUniformLocation(program, transformVal);
+	glm::mat4 transform = glm::mat4(1.0f);
+	transform = glm::translate(transform, glm::vec3(xPos, yPos,0.0f));
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+}
+
+void help(){
+	std::cout << "Welcome to the Help" << std::endl;
+	std::cout << "****************************************************************************" << std::endl;
+	std::cout << "I -- Initialize the pose (top left corner of the window)" << std::endl;
+	std::cout << "C -- Switch between colors, which is used to draw lines or triangles." << std::endl;
+	std::cout << "H -- Help; print explanation of input control" << std::endl;
+	std::cout << "Q -- Quit (exit) the program" << std::endl;
+	std::cout << "Right Mouse Button -- Changes between the objects to be drawn" << std::endl;
+	std::cout << "Left  Mouse Button -- Changes how the triangles are drawn" << std::endl;
+	std::cout << "****************************************************************************" << std::endl;
+}

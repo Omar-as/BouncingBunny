@@ -3,6 +3,10 @@
 #include <fstream>
 #include <algorithm>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 namespace scratch
 {
     using namespace std;
@@ -21,6 +25,9 @@ namespace scratch
         GLint vertices_number;
         GLint indices_number;
 
+        // Lowest Y point in the model
+        GLfloat minYval;
+
         // Vertex array object/Vertex buffer object/Edge buffer object. for each model
         unsigned int VAO;
         unsigned int VBO;
@@ -29,7 +36,6 @@ namespace scratch
 
     Model model_loader(const char* filename)
     {
-        
         // Open the file to be read from
         ifstream infile;
         infile.open(filename);
@@ -58,14 +64,17 @@ namespace scratch
             infile >> index;
             model.indices.push_back(index);
         }
-
-        // Finding the maximum
-        GLfloat max = *max_element(model.vertices.begin(), model.vertices.end());
-
-        for (auto i = 0; i < model.vertices.size(); i++) model.vertices[i] /= max;
+        
+        // Calculates the min Y vertex value
+        auto min = model.vertices[1];
+        for (size_t i = 1; i < model.vertices.size() - 2; i += 3){
+            if (min > model.vertices[i]){
+                min = model.vertices[i];
+            }
+        }
+        model.minYval = min;
 
         return model;
-
     }
 
 }
