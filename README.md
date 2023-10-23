@@ -2,7 +2,9 @@
 
 ## Description
 
-This graphics application simulates a bouncing ball on the screen. The ball can be of two types (cube or sphere) and can be drawn in wireframe or solid mode. The program uses shader-based OpenGL and the GLFW 3D graphics library to create an interactive and visually appealing animation.
+This graphics application simulates a bouncing ball on the screen. The ball can be of two types (cube or sphere) and can be drawn in wireframe or solid mode. The program uses shader-based OpenGL and the GLFW 3D graphics library to create an interactive and visually appealing animation. 
+
+g++ -lGL -lglfw -lGLEW -Wall -o main.out main.cpp
 
 ## Table of Contents
 
